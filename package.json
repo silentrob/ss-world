@@ -1,0 +1,22 @@
+{
+  "name": "ss-spacy",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel src --out-dir lib --copy-files",
+    "lint": "eslint --env node src *.js",
+    "test": "mocha --compilers js:babel-register test -R spec -s 1700 -t 30000 --recursive"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "^4.17.4"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.22.2",
+    "babel-preset-env": "^1.1.8",
+    "mocha": "^3.2.0",
+    "should": "^11.1.2"
+  }
+}
