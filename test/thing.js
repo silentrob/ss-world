@@ -227,8 +227,10 @@ describe('Thing interface', () => {
 
   it('Thing #what method', (done) => {
     let hammer = new Thing('hammer');
-    should(hammer.what()).eql("I don't know what hammer is.");
     let tool = new Thing('tool');
+
+    should(hammer.what()).eql("I don't know what hammer is.");
+    
     hammer.isA(tool);
     should(hammer.what()).eql("A hammer is a tool.");
     
@@ -236,7 +238,6 @@ describe('Thing interface', () => {
     should(hammer.what()).eql("A hammer is a tool, used for nailing.");
 
     let srewdriver = new Thing('srewdriver', tool);
-
     should(hammer.what()).eql("A hammer is a tool much like a srewdriver, used for nailing.");
 
     done();
