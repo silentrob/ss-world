@@ -131,26 +131,15 @@ describe('Thing interface', () => {
       // With this new info we can work out the value of `a`
       c.size(40);
 
-      done();
-    });
+      // size should be
+      // a -> c 20 (40 - 20) = 20
+      // a -> b 10 (20 - 10) = 10
+      // c = 40, a = 20, b = 10
 
-    // size should be
-    // a -> c 20 (40 - 20) = 20
-    // a -> b 10 (20 - 10) = 10
-    // c = 40, a = 20, b = 10
-
-    it('We can now solve C', (done) => {
       should(c.size()).eql(40);
-      done();
-    });
-
-    it('We can now solve A', (done) => {
       should(a.size()).eql(20);
-      done();
-    });
-
-    it('We can now solve B', (done) => {
       should(b.size()).eql(10);
+
       done();
     });
 
@@ -213,6 +202,43 @@ describe('Thing interface', () => {
     // Is blue a color
     should(Thing.isA(water, blue)).eql(true);
     should(Thing.find(redsea, color)).eql(blue);
+    done();
+  });
+
+  // What would I use a hammer for?
+  it('What would I use a hammer for?', (done) => {
+    let hammer = new Thing('hammer');
+    let nail = new Thing('nail');
+    hammer.usedFor(nail);
+
+    should(hammer.usedFor()).eql(nail);
+    done();
+  });
+
+  // What would I use to put a nail into a wall? 
+  // For this we need to look at an inverse_usedfor
+  it('What would I use to put a nail into a wall?', (done) => {
+    let hammer = new Thing('hammer');
+    let nail = new Thing('nail');
+    hammer.usedFor(nail);
+    should(nail._inverse_usedfor[0]).eql(hammer);
+    done();
+  });
+
+  it('Thing #what method', (done) => {
+    let hammer = new Thing('hammer');
+    should(hammer.what()).eql("I don't know what hammer is.");
+    let tool = new Thing('tool');
+    hammer.isA(tool);
+    should(hammer.what()).eql("A hammer is a tool.");
+    
+    hammer.usedFor("nailing");
+    should(hammer.what()).eql("A hammer is a tool, used for nailing.");
+
+    let srewdriver = new Thing('srewdriver', tool);
+
+    should(hammer.what()).eql("A hammer is a tool much like a srewdriver, used for nailing.");
+
     done();
   });
 

@@ -16,6 +16,9 @@ class Thing {
     this._isa = [];
     this._inverse_isa = [];
 
+    this._usedfor = [];
+    this._inverse_usedfor = [];
+
     if (isa) {
       this.isA(isa);
     }
@@ -59,6 +62,10 @@ class Thing {
   }
 
   isA(thing) {
+    if (arguments.length == 0) {
+      return this._isa[0];
+    }
+
     if (_.isString(thing)) {
       thing = new Thing(thing);
     }
@@ -66,6 +73,46 @@ class Thing {
     this._isa.push(thing);
     thing._inverse_isa.push(this);
   }
+
+  usedFor(thing) {
+    if (arguments.length == 0) {
+      return this._usedfor[0];
+    }
+
+    if (_.isString(thing)) {
+      thing = new Thing(thing);
+    }
+
+    this._usedfor.push(thing);
+    thing._inverse_usedfor.push(this);
+  }
+
+  what() {
+    let isa = _.sample(this._isa);
+    let use = _.sample(this._usedfor);
+    let syn;
+    let use_clasue = '';
+    let self = this;
+    if (isa) {
+      syn = _.filter(isa._inverse_isa, function(i){ return i.id != self.id; })[0]; 
+    }
+    
+    
+
+    if (!isa && !use) {
+      return `I don't know what ${this.name} is.`;
+    } else {
+      let isa_clause = (isa) ? ` is a ${isa.name}` : '';
+      let sym_clause = (syn) ? ` much like a ${syn.name}` : '';
+      if (use) {
+        use_clasue = (syn || isa) ? `, used for ${use.name}` : ` is used for ${use.name}`; 
+      }
+      return `A ${this.name}${isa_clause}${sym_clause}${use_clasue}.`;
+    }
+
+    
+  }
+
 
   static isA(thing1, thing2) {
     const traversal_props = ['_isa'];
