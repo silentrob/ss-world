@@ -10,7 +10,7 @@ const transitive_properties = [
 
 class Thing {
   constructor(name, isa = null) {
-    this.id = name.toLowerCase().replace(" ", "_");
+    this.id = "T" + Math.random().toString(36).substr(2, 5).toUpperCase();
     this.name = name || null;
 
     this._isa = [];

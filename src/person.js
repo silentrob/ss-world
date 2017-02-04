@@ -1,22 +1,13 @@
 import _ from 'lodash';
 import Thing from './thing'
 
-const GREATER = Symbol('Greater');
-const LESSER = Symbol('Lesser');
-
-const DESC = Symbol('Desc'); // high to low
-const ASC = Symbol('Asc'); // low to high
-
-
 class Person extends Thing {
   constructor(name, isa, gender = null) {
     super(name, isa);
     
-    name = name || Math.random().toString(36).substr(2, 5);
-    this.id = name.toLowerCase().replace(" ", "_");
+    this.id = this.id = "P" + Math.random().toString(36).substr(2, 5).toUpperCase();
     this.name = name || null;
     this.gender = gender;
-    this._age = [];
 
     // Relations
     this.parents = [];
@@ -202,7 +193,7 @@ class Person extends Thing {
     child.gender = gender;
     child.parents.push(this);
     this.children.push(child);
-    this.age(child, GREATER);
+    this.older(child);
     return child;
   }
 
@@ -213,7 +204,7 @@ class Person extends Thing {
     _.merge(parent.children, this.siblings());
     parent.children.push(this);
     this.parents.push(parent);
-    this.age(parent, LESSER);
+    this.younger(parent);
     return parent;
   }
 
@@ -230,35 +221,6 @@ class Person extends Thing {
     return parent;
   }
 
-  // Setter / Getter for age.
-  // age() => gets age
-  // age(number) => sets age
-  // age(person) => uses age from person
-  // age(person, offset) => relative age based on someone else.
-  // age(person, GREATER|LESSER) => relative age based on someone else.
-  age(person_or_value, offset = 0) {
-    if (arguments.length === 0) {
-      // if (this._age && this._age[0] && _.isSymbol(this._age[1])) {
-
-      // if (this._age[0] instanceof Person) {
-      //   return this._age[0].age() + this._age[1];
-      // } else {
-
-        return this._age[0][0] + this._age[0][1];
-      // }
-    } else {
-      // Setting Age
-      this._age.push([person_or_value, offset]);
-      if (_.isSymbol(offset)) {
-        // if (_.find(this._age, function(o) { return o[0] === person_or_value; })[0] !== person_or_value) {
-        if (person_or_value._age.length === 0) {
-          // Set the inverse
-          person_or_value.age(this, Person.inverse(offset));
-        }
-      }
-      
-    }
-  }
 
   find(p) {
     let queue=[['start', this]];
@@ -294,61 +256,8 @@ class Person extends Thing {
     }
     return (match) ? result : [];
   }
-
-  static inverse(sym) {
-    return sym === GREATER ? LESSER : GREATER;
-  }
-  // transitive property
-  // people, array of Persons
-  // property is the method to call (age) is the only one supported
-  // direction DESC / ASC
-  // return the first element and first person [[person, property], ...]
-  static transitive(people, property, direction = DESC) {
-    // Which person is the OLDEST
-    let dir = (direction === DESC) ? GREATER : LESSER;
-
-    var topologicalSortHelper = function topologicalSortHelper(node, visited, temp, result) {
-      temp[node.id] = true;
-      var neighbors = _.filter(node[property], function(i) {
-        return (i[1] === dir);
-      });
-      
-      console.log(neighbors.length);
-
-      for (var i = 0; i < neighbors.length; i++) {
-        var n = neighbors[i][0];
-        if (temp[n.id]) {
-          throw new Error(`We encounteted a cycle in '${property}' property. IE: A -> B -> A`);
-        }
-        if (!visited[n.id]) {
-          topologicalSortHelper(n, visited, temp, result);
-        }
-      }
-      temp[node.id] = false;
-      visited[node.id] = true;
-      result.push(node);
-    }
-
-    var result = [];
-    var visited = [];
-    var temp = [];
-    for (var i = 0; i < people.length; i++) {
-      var node = people[i];
-      if (!visited[node.id] && !temp[node.id]) {
-        topologicalSortHelper(node, visited, temp, result);
-      }
-    }
-
-    return result.filter(function(p) {
-      return _.includes(people, p)
-    }).reverse();
-  }
 }
 
 export {
-  Person,
-  GREATER,
-  LESSER,
-  DESC,
-  ASC,  
+  Person
 };

@@ -1,61 +1,77 @@
 import {Person} from '../src/Person';
+import mocha from 'mocha';
+import should from 'should/as-function';
 
-// const john = new Person("John");
-// const mary = new Person("mary");
+describe('Person interface', () => { 
 
-// const jack = john.brother('jack');
-// const mark = john.dad('mark');
+  it("Basics", (done) => {
+    const john = new Person("John", null, "male");
+    const jane = john.mom('Jane');
+    should(john.mom('Jane').gender).eql("female");
+
+    // Parents should be older than children
+    should(Person.older(jane, john)).eql(true);
+    should(jane.son()).eql(john);
+    
+    done();    
+  });
 
 
-// const albert = new Person("Albert Einstein");
-// albert.career = "Scientist";
-// console.log(albert.who());
-// Scientist
+  it("Who Interface - absolute", (done) => {
+    const john = new Person("John");
+    const mary = new Person("mary");
 
-// Who is John (in relation to jack)
-// const john = new Person("John");
-// const jack = john.son('jack');
-// const mark = jack.son('mark');
-// console.log(john.who(mark));
-// grand-son
+    const jack = john.brother('jack');
+    const mark = john.dad('mark');
 
-// console.log(albert.who(jack));
-// Scientist
+    const albert = new Person("Albert Einstein");
+    albert.career = "Scientist";
 
-// console.log(john.who());
+    should(albert.who()).eql("Scientist");
+    done();    
+  });
 
-// var john = new Person("John");
-// var mary = new Person("Mary");
-// var jane = new Person("Jane");
+  it("Who Interface - relative", (done) => {
+    // Who is John (in relation to jack)
+    const john = new Person("John");
+    const jack = john.son('jack');
+    const mark = jack.son('mark');
+    
+    const albert = new Person("Albert Einstein");
+    albert.career = "Scientist";
 
-// // John is 30
-// john.age(30);
+    should(john.who(mark)).eql("grand-son");
+    should(albert.who()).eql("Scientist");
 
-// // Mary is 5 years older than John
-// mary.age(john, +5);
+    done();    
+  });
 
-// // Jane is 2 years younger than mary
-// jane.age(john, 8);
+  it("Person age - relative", (done) => {
+    var john = new Person("John");
+    var mary = new Person("Mary");
+    var jane = new Person("Jane");
 
-// // Who is older jane or john
-// console.log(Person.transitive([mary, jane], 'age', HIGH));
+    // John is 30
+    john.age(30);
 
-// Truly relative things
-// mary is older than john
-// mary is older than jane
-// mary.age(john, GREATER);
-// mary.age(jane, GREATER);
-// Person.transitive([mary, john], 'age', HIGH)
-// Here we know [mary, john] && [mary, jane]
+    should(john.age()).eql(30);
 
-// Jane is younger than john
-// jane.age(john, LESSER);
-// console.log(mary);
+    // Mary is 5 years older than John
+    mary.older(john, 5);
 
-// Person.transitive([mary, john], 'age', HIGH)
-// john is older than jane
-// john.age(jane, GREATER);
-// who is older mary or jane
-// console.log(Person.transitive([mary, jane], 'age', HIGH));
+    // Jane is 2 years younger than mary
+    jane.older(john, 8);
 
-// Lets get to a place we can go back and forth bewteen relative and abs.
+    should(Person.older(mary, john)).eql(true);
+    should(Person.older(mary, jane)).eql(false);
+
+    // TODO - See why this is false
+    // should(Person.older(jane, mary)).eql(true);
+
+    should(mary.age()).eql(35);
+    should(jane.age()).eql(38);
+
+    done();
+  });
+});
+
