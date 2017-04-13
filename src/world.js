@@ -15,32 +15,63 @@ class World {
   constructor() {
     this.radius = 6371;
     this.time = new Date();
-
     this.entities = {};
   }
 
   load(data) {
+    let self = this;
+    let isa;
+    let people_props = ['age', 'likes', 'mom', 'dad'];
+
     for (let i = 0; i < data.things.length; i++) {
       let thing = data.things[i];
-      let t = new Thing(thing.name, thing.isa);
-      this.create_entity(t, THING);
-      this.create_entity(thing.isa, THING);
+      if (thing.isa) {
+        isa = self.findByName(thing.isa);
+        isa = (isa) ? isa : new Thing(thing.isa);
+        self.createEntity(isa, THING);
+      }
+      
+      let t = new Thing(thing.name, isa);
+      this.createEntity(t, THING);
     }
 
     for (let i = 0; i < data.people.length; i++) {
       let person = data.people[i];
+
       let p = new Person(person.name);
       for(let prop in person) {
-        if (prop !== "name") {
-          p[prop] = person[prop];
+
+        if (prop === "name") {
+          continue;
         }
+
+        // if (prop === "gender") {
+        //   p['_gender'] = person['gender'];
+        //   continue;
+        // }
+
+
+        if (people_props.indexOf(prop) !== -1) {
+          if (_.isArray(person[prop])) {
+            for(let n = 0; n < person[prop].length; n++) {
+              p[prop](person[prop][n]);
+            }
+          } else {
+            if (prop === "mom" || prop === "dad") {
+              p[prop](this.findByName(person[prop]));
+            } else {
+              p[prop](person[prop]);  
+            }
+            
+          }
+        }
+
       }
-      
-      this.create_entity(p, PERSON);
+      this.createEntity(p, PERSON);
     }
   }
 
-  create_entity(name, type) {
+  createEntity(name, type) {
 
     let entity;
 
@@ -57,15 +88,14 @@ class World {
     return this.entities[entity.id];
   }
 
-  find(name) {
-    const id = name.toLowerCase().replace(" ", "_");
-    if (this.entities[id]) {
-      return this.entities[id];
-    } else {
-      // TODO find by name
+  findByName(name) {
+    for(let entry in this.entities) {
+      if (this.entities[entry]._name === name) {
+        return this.entities[entry];
+      }
     }
   }
 
 }
 
-export {World, PERSON, LOCATION, THING};
+export {World, Person, Thing};

@@ -1,12 +1,13 @@
 {
-  "name": "ss-spacy",
+  "name": "ss-world",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "build": "babel src --out-dir lib --copy-files",
     "lint": "eslint --env node src *.js",
-    "test": "mocha --compilers js:babel-register test -R spec -s 1700 -t 30000 --recursive"
+    "test": "mocha --compilers js:babel-register test -R spec -s 1700 -t 30000 --recursive",
+    "basic": "mocha --compilers js:babel-register test/basic -R spec -s 1700 -t 30000 --recursive"
   },
   "author": "",
   "license": "ISC",

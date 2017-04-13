@@ -1,4 +1,6 @@
 import {Person} from '../src/Person';
+import Thing from '../src/Thing';
+
 import mocha from 'mocha';
 import should from 'should/as-function';
 
@@ -7,7 +9,7 @@ describe('Person interface', () => {
   it("Basics", (done) => {
     const john = new Person("John", null, "male");
     const jane = john.mom('Jane');
-    should(john.mom('Jane').gender).eql("female");
+    should(john.mom('Jane').gender()).eql("female");
 
     // Parents should be older than children
     should(Person.older(jane, john)).eql(true);
@@ -31,7 +33,8 @@ describe('Person interface', () => {
     done();    
   });
 
-  it("Who Interface - relative", (done) => {
+  // Family ties come before career
+  it.only("Who Interface - relative", (done) => {
     // Who is John (in relation to jack)
     const john = new Person("John");
     const jack = john.son('jack');
@@ -39,17 +42,20 @@ describe('Person interface', () => {
     
     const albert = new Person("Albert Einstein");
     albert.career = "Scientist";
+    mark.son(albert);
 
     should(john.who(mark)).eql("grand-son");
     should(albert.who()).eql("Scientist");
+    should(mark.who(albert)).eql("son");
+    should(albert.who(mark)).eql("dad");
 
     done();    
   });
 
   it("Person age - relative", (done) => {
-    var john = new Person("John");
-    var mary = new Person("Mary");
-    var jane = new Person("Jane");
+    let john = new Person("John");
+    let mary = new Person("Mary");
+    let jane = new Person("Jane");
 
     // John is 30
     john.age(30);
@@ -71,6 +77,25 @@ describe('Person interface', () => {
     should(mary.age()).eql(35);
     should(jane.age()).eql(38);
 
+    done();
+  });
+
+  it("Person like direct", (done) => {
+    const john = new Person("John");
+    const green = new Thing("green");
+    john.likes(green);
+    should(john.likesFind(green)).eql([true, green]);
+    done();
+  });
+
+  it("Person like in-direct", (done) => {
+    let john = new Person("John");
+    let green = new Thing("green");
+    let color = new Thing("color");
+    green.isA(color);
+    john.likes(green);
+
+    should(john.likesFind(color)).eql([true, green]);
     done();
   });
 });

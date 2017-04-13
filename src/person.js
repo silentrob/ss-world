@@ -1,13 +1,14 @@
 import _ from 'lodash';
 import Thing from './thing'
+import {walk_graph, walk_graph2, walk_graph3} from './util';
 
 class Person extends Thing {
   constructor(name, isa, gender = null) {
     super(name, isa);
     
     this.id = this.id = "P" + Math.random().toString(36).substr(2, 5).toUpperCase();
-    this.name = name || null;
-    this.gender = gender;
+    this._name = name || null;
+    this._gender = gender;
 
     // Relations
     this.parents = [];
@@ -24,7 +25,7 @@ class Person extends Thing {
     if (arguments.length === 1) {
       return this._createParent(p, "female");
     } else {
-      return _.filter(this.parents, (p) => { return p.gender === "female"})[0]
+      return _.filter(this.parents, (p) => { return p._gender === "female"})[0]
     }
   }
 
@@ -32,21 +33,33 @@ class Person extends Thing {
     if (arguments.length === 1) {
       return this._createParent(p, "male");
     } else {
-      return _.filter(this.parents, (p) => { return p.gender === "male"})[0]
+      return _.filter(this.parents, (p) => { return p._gender === "male"})[0]
     }
   }
+
+  // Returns a human readable form of parents
+  // Fixme: 3 parents?
+  whoParents() {
+    let plist = this.parents.map((p) => {return p._name});
+    if (plist.length === 2) {
+      return plist.join(" and ");
+    } else {
+      return plist.join("");
+    }
+  }
+
 
   son(p) {
     if (arguments.length === 1 && !_.isNumber(p)) {
       return this._createChild(p, "male");
     } else {
       const index = _.isNumber(p) ? p : 0;
-      return _.filter(this.children, (p) => { return p.gender === "male"})[index]
+      return _.filter(this.children, (p) => { return p._gender === "male"})[index]
     }
   }
 
   sons() {
-    return _.filter(this.children, (p) => { return p.gender === "male"});
+    return _.filter(this.children, (p) => { return p._gender === "male"});
   }
 
   daughter(p) {
@@ -54,12 +67,12 @@ class Person extends Thing {
       return this._createChild(p, "female");
     } else {
       const index = _.isNumber(p) ? p : 0;
-      return _.filter(this.children, (p) => { return p.gender === "female"})[index]
+      return _.filter(this.children, (p) => { return p._gender === "female"})[index]
     }
   }
 
   daughters() {
-    return _.filter(this.children, (p) => { return p.gender === "female"});
+    return _.filter(this.children, (p) => { return p._gender === "female"});
   }
 
   sibling(p) {
@@ -70,13 +83,13 @@ class Person extends Thing {
       parent.children.push(child);
     } else if (this.parents.length !== 0 && this.parents[0].children) {
       const index = _.isNumber(p) ? p : 0;
-      return _.filter(this.parents[0].children, (c) => {return c.name !== this.name})[index];
+      return _.filter(this.parents[0].children, (c) => {return c._name !== this._name})[index];
     }
   }
 
   siblings() {
     if (this.parents.length !== 0 && this.parents[0].children) {
-      return _.filter(this.parents[0].children, (c) => {return c.name !== this.name})
+      return _.filter(this.parents[0].children, (c) => {return c._name !== this._name})
     }
   }
 
@@ -84,13 +97,13 @@ class Person extends Thing {
     if (arguments.length === 1 && !_.isNumber(p)) {
       const parent = this._findOrCreateParent();
       const child = _.isString(p) ? new Person(p) : p;
-      child.gender = "male";
+      child._gender = "male";
       child.parents.push(parent);
       parent.children.push(child);
       return child;
     } else if (this.parents.length !== 0 && this.parents[0].children) {
       const index = _.isNumber(p) ? p : 0;
-      return _.filter(this.siblings(), (c) => { return c.gender === "male"})[index]
+      return _.filter(this.siblings(), (c) => { return c._gender === "male"})[index]
     }
   }
 
@@ -98,13 +111,13 @@ class Person extends Thing {
     if (arguments.length === 1 && !_.isNumber(p)) {
       const parent = this._findOrCreateParent();
       const child = _.isString(p) ? new Person(p) : p;
-      child.gender = "female";
+      child._gender = "female";
       child.parents.push(parent);
       parent.children.push(child);
       return child;
     } else if (this.parents.length !== 0 && this.parents[0].children) {
       const index = _.isNumber(p) ? p : 0;
-      return _.filter(this.siblings(), (c) => { return c.gender === "female"})[index]
+      return _.filter(this.siblings(), (c) => { return c._gender === "female"})[index]
     }
   }
 
@@ -127,8 +140,36 @@ class Person extends Thing {
     }
   }
 
+  // This will find the item in the list of likes, but also includes 
+  // transitive properties.
+  likesFind(person_or_thing) {
+    const traversal_props = ['_isa', '_inverse_isa', '_likes'];
+    let results = walk_graph(this, person_or_thing, traversal_props);
+
+    if (results[0]) {
+      if (results[1].length === 2) {
+        // A -> B
+        return [true, results[1].pop()];
+      } else {
+        // A -> N -> B <- C
+        return [true, results[1].slice(-2, -1)[0]];
+      }
+    } else {
+      return [false, null];
+    }
+  }
+
+
   friends() {
     return _.filter(this._likes, function(x) { return x instanceof Person });
+  }
+
+  gender(gender) {
+    if (arguments.length === 1) {
+      return this._gender = gender;
+    } else {
+      return this._gender;  
+    }
   }
 
   // Who is a handy way to resolve questions about who someone is.
@@ -141,18 +182,18 @@ class Person extends Thing {
       let ret = "";
       if (rel[0] === "parent") {
         ret = "parent";
-        if (rel[1].gender === "male") {
+        if (rel[1]._gender === "male") {
           ret = "dad";
-        } else if (rel[1].gender === "female") {
+        } else if (rel[1]._gender === "female") {
           ret = "mom";
         }
       }
 
       if (rel[0] === "child") {
         ret = "child";
-        if (rel[1].gender === "male") {
+        if (rel[1]._gender === "male") {
           ret = "son";
-        } else if (rel[1].gender === "female") {
+        } else if (rel[1]._gender === "female") {
           ret = "daughter";
         }
       }
@@ -169,9 +210,9 @@ class Person extends Thing {
           return "grand-" + chk(result[2]);
         } else {
           let ret = "sibling";
-          if (result[2][1].gender === "male") {
+          if (result[2][1]._gender === "male") {
             ret = "brother";
-          } else if (result[2][1].gender === "female") {
+          } else if (result[2][1]._gender === "female") {
             ret = "sister";
           }
           return ret;
@@ -190,7 +231,7 @@ class Person extends Thing {
   // `this` is the `parent`
   _createChild(p, gender = null) {
     const child = _.isString(p) ? new Person(p) : p;
-    child.gender = gender;
+    child._gender = gender;
     child.parents.push(this);
     this.children.push(child);
     this.older(child);
@@ -199,7 +240,7 @@ class Person extends Thing {
 
   _createParent(p, gender = null) {
     const parent = _.isString(p) ? new Person(p) : p;
-    parent.gender = gender;
+    parent._gender = gender;
     // copy all children over.
     _.merge(parent.children, this.siblings());
     parent.children.push(this);

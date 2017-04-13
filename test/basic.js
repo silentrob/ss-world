@@ -1,16 +1,26 @@
-// import {World, PERSON, THING} from '../src/world';
-// import data from '../data/entities_sm';
+import {World, Person, Thing} from '../src/world';
+import data from '../data/entities_sm';
 
-// const w = new World();
-// w.load(data);
+// World
+const w = new World();
+w.load(data);
 
-// const self = w.create_entity('rob', PERSON);
-// self.mom('Judy');
+let bot = w.findByName('Brit');
 
-// Who is Albert Einstein
-// var p = w.find("Albert Einstein");
-// console.log(p.who());
+// How old are you?
+console.log("age", bot.age());
 
-// Who is Judy
-// var p = w.find("Judy");
-// console.log(p.who());
+// Are you male or female?
+console.log("gender", bot.gender());
+
+// Are you a bot?
+console.log("isa bot",  Person.isA(bot, 'bot'));
+
+// What is your favorite color?
+// console.log(bot.findLikes(w.findByName('color')));
+
+// Who are your parents?
+console.log("Parents",  bot.whoParents());
+
+// Which do you like better chocolate or vanilla?
+// What color is the red sea?
